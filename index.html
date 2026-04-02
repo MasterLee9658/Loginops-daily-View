@@ -9,7 +9,20 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #1e293b; }
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #1e293b; margin: 0; overflow-x: hidden; }
+        
+        /* Auth Screen Styling */
+        #authScreen {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: #0f172a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease-out;
+        }
+
         .glass-card { 
             background: #ffffff;
             border: 1px solid #e2e8f0;
@@ -35,169 +48,205 @@
         
         .progress-bar-bg { @apply h-1.5 w-full bg-slate-100 rounded-full overflow-hidden mt-1; }
         .progress-bar-fill { @apply h-full bg-indigo-500 rounded-full transition-all duration-1000; }
+
+        .hidden-content { display: none; }
     </style>
 </head>
 <body class="min-h-screen">
 
-    <!-- Detailed Drill-down Overlay -->
-    <div id="detailOverlay" class="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm flex justify-end">
-        <div class="w-full max-w-5xl bg-white h-full shadow-2xl flex flex-col">
-            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-900 text-white">
-                <div>
-                    <h2 id="detailTitle" class="text-xl font-bold">Facility Details</h2>
-                    <p id="detailSubtitle" class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Audit Log Visualization</p>
+    <!-- Password Protection Screen -->
+    <div id="authScreen">
+        <div class="max-w-md w-full mx-4">
+            <div class="bg-white p-8 rounded-3xl shadow-2xl text-center">
+                <div class="h-16 w-16 bg-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-indigo-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
                 </div>
+                <h2 class="text-2xl font-bold text-slate-900 mb-2">Restricted Access</h2>
+                <p class="text-slate-500 text-sm mb-8">Please enter the security password to view the Operational Performance Dashboard.</p>
+                
+                <form id="loginForm" onsubmit="handleAuth(event)" class="space-y-4">
+                    <div class="text-left">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Password</label>
+                        <input type="password" id="passwordInput" required class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-center text-lg tracking-widest">
+                    </div>
+                    <p id="errorMsg" class="text-rose-500 text-xs font-medium hidden">Incorrect password. Please try again.</p>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-indigo-100 active:scale-[0.98]">
+                        Unlock Dashboard
+                    </button>
+                </form>
+            </div>
+            <p class="text-center text-slate-500 text-xs mt-8">Secure Corporate Analytics Portal</p>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Content (Initially Hidden) -->
+    <div id="mainDashboard" class="hidden-content">
+        <!-- Detailed Drill-down Overlay -->
+        <div id="detailOverlay" class="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm flex justify-end">
+            <div class="w-full max-w-5xl bg-white h-full shadow-2xl flex flex-col">
+                <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-900 text-white">
+                    <div>
+                        <h2 id="detailTitle" class="text-xl font-bold">Facility Details</h2>
+                        <p id="detailSubtitle" class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Audit Log Visualization</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button onclick="closeDetails()" class="p-2 hover:bg-slate-800 rounded-lg transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex-1 overflow-hidden flex flex-col p-6 bg-slate-50">
+                    <div class="flex-1 bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm flex flex-col">
+                        <div class="overflow-auto custom-scroll flex-1">
+                            <table class="w-full text-xs text-left min-w-[1200px]">
+                                <thead class="bg-slate-50 text-slate-500 uppercase font-bold sticky top-0 z-10">
+                                    <tr>
+                                        <th class="px-4 py-4 border-b border-slate-200">Program</th>
+                                        <th class="px-4 py-4 border-b border-slate-200">Vendor</th>
+                                        <th class="px-4 py-4 border-b border-slate-200">Type</th>
+                                        <th class="px-4 py-4 border-b border-slate-200">Brief Comment</th>
+                                        <th class="px-4 py-4 border-b border-slate-200 text-right">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="detailCaseBody" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
+            <div class="max-w-[1400px] mx-auto px-6 py-4 flex justify-between items-center">
                 <div class="flex items-center gap-4">
-                    <button onclick="closeDetails()" class="p-2 hover:bg-slate-800 rounded-lg transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    <div class="h-10 w-10 bg-indigo-600 rounded-xl flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold text-slate-900 tracking-tight">Executive Dashboard</h1>
+                        <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest" id="syncStatus">Loading...</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <select id="monthFilter" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 text-sm font-semibold text-slate-700 px-4 py-2 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="all">All Months</option>
+                    </select>
+                    <button onclick="fetchData()" class="p-2.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-sm transition-all">
+                        <svg id="refreshIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                    </button>
+                    <button onclick="logout()" class="p-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all" title="Logout">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                         </svg>
                     </button>
                 </div>
             </div>
-            
-            <div class="flex-1 overflow-hidden flex flex-col p-6 bg-slate-50">
-                <div class="flex-1 bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm flex flex-col">
-                    <div class="overflow-auto custom-scroll flex-1">
-                        <table class="w-full text-xs text-left min-w-[1200px]">
-                            <thead class="bg-slate-50 text-slate-500 uppercase font-bold sticky top-0 z-10">
+        </nav>
+
+        <main class="max-w-[1400px] mx-auto px-6 py-8">
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="stat-card">
+                    <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Audit Volume</p>
+                    <p id="totalVolume" class="text-3xl font-bold">0</p>
+                </div>
+                <div class="stat-card">
+                    <p class="text-emerald-500 text-[10px] font-bold uppercase tracking-widest mb-1">Approved Cases</p>
+                    <p id="totalApproved" class="text-3xl font-bold text-emerald-600">0</p>
+                </div>
+                <div class="stat-card">
+                    <p class="text-rose-500 text-[10px] font-bold uppercase tracking-widest mb-1">Rejected Cases</p>
+                    <p id="totalRejected" class="text-3xl font-bold text-rose-600">0</p>
+                </div>
+                <div class="stat-card bg-indigo-600 text-white !border-none">
+                    <p class="text-indigo-100 text-[10px] font-bold uppercase tracking-widest mb-1">Total IDs Actioned</p>
+                    <p id="totalTicketsActioned" class="text-3xl font-bold">0</p>
+                </div>
+            </div>
+
+            <!-- Actioned Day Wise -->
+            <div class="mb-8 table-container">
+                <div class="p-5 border-b border-slate-100 bg-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div class="flex items-center gap-4">
+                        <h3 class="font-bold text-slate-800">Tickets Actioned (Day Wise)</h3>
+                        <div class="flex bg-slate-50 p-1 rounded-lg border border-slate-200">
+                            <button onclick="setDayFilter('7')" id="btn-7" class="toggle-btn active px-3 py-1 text-[10px] font-bold rounded transition-all">L7D</button>
+                            <button onclick="setDayFilter('all')" id="btn-all" class="toggle-btn px-3 py-1 text-[10px] font-bold rounded transition-all">ALL</button>
+                        </div>
+                    </div>
+                    <div class="relative w-full md:w-64">
+                        <input type="text" id="daySearch" oninput="renderDayWiseTable()" placeholder="Search date..." class="w-full bg-slate-50 border border-slate-200 rounded-lg py-1.5 pl-8 pr-3 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <svg class="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                </div>
+                <div class="overflow-x-auto max-h-[400px] custom-scroll">
+                    <table class="w-full text-sm text-left border-collapse">
+                        <thead class="text-[10px] text-slate-400 uppercase tracking-widest bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
+                            <tr>
+                                <th class="px-6 py-4">Action Date</th>
+                                <th class="px-6 py-4 w-64">Unique User IDs Actioned</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dayWiseBody" class="divide-y divide-slate-100 bg-white"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Secondary Tables -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="table-container">
+                    <div class="p-5 border-b border-slate-100 bg-white flex justify-between items-center">
+                        <h3 class="font-bold text-slate-800">Market Distribution</h3>
+                    </div>
+                    <div class="overflow-x-auto max-h-[500px] custom-scroll">
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-[10px] text-slate-400 uppercase bg-slate-50 sticky top-0 z-10">
                                 <tr>
-                                    <th class="px-4 py-4 border-b border-slate-200">Program</th>
-                                    <th class="px-4 py-4 border-b border-slate-200">Vendor</th>
-                                    <th class="px-4 py-4 border-b border-slate-200">Type</th>
-                                    <th class="px-4 py-4 border-b border-slate-200">Brief Comment</th>
-                                    <th class="px-4 py-4 border-b border-slate-200 text-right">Status</th>
+                                    <th class="px-6 py-4">Market</th>
+                                    <th class="px-6 py-4 text-center">Volume</th>
+                                    <th class="px-6 py-4 text-right">Success</th>
                                 </tr>
                             </thead>
-                            <tbody id="detailCaseBody" class="divide-y divide-slate-100"></tbody>
+                            <tbody id="marketBody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div class="p-5 border-b border-slate-100 bg-white">
+                        <h3 class="font-bold text-slate-800">Team Performance</h3>
+                    </div>
+                    <div class="overflow-x-auto max-h-[500px] custom-scroll">
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-[10px] text-slate-400 uppercase bg-slate-50 sticky top-0 z-10">
+                                <tr>
+                                    <th class="px-6 py-4">Analyst</th>
+                                    <th class="px-6 py-4 text-center">Cases</th>
+                                    <th class="px-6 py-4 text-right">Score</th>
+                                </tr>
+                            </thead>
+                            <tbody id="analystBody" class="divide-y divide-slate-100"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
-
-    <!-- Navigation -->
-    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
-        <div class="max-w-[1400px] mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-4">
-                <div class="h-10 w-10 bg-indigo-600 rounded-xl flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="text-lg font-bold text-slate-900 tracking-tight">Executive Dashboard</h1>
-                    <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest" id="syncStatus">Loading...</p>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-3">
-                <select id="monthFilter" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 text-sm font-semibold text-slate-700 px-4 py-2 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
-                    <option value="all">All Months</option>
-                </select>
-                <button onclick="fetchData()" class="p-2.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-sm transition-all">
-                    <svg id="refreshIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                </button>
-            </div>
-        </div>
-    </nav>
-
-    <main class="max-w-[1400px] mx-auto px-6 py-8">
-        <!-- Stats Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="stat-card">
-                <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Audit Volume</p>
-                <p id="totalVolume" class="text-3xl font-bold">0</p>
-            </div>
-            <div class="stat-card">
-                <p class="text-emerald-500 text-[10px] font-bold uppercase tracking-widest mb-1">Approved Cases</p>
-                <p id="totalApproved" class="text-3xl font-bold text-emerald-600">0</p>
-            </div>
-            <div class="stat-card">
-                <p class="text-rose-500 text-[10px] font-bold uppercase tracking-widest mb-1">Rejected Cases</p>
-                <p id="totalRejected" class="text-3xl font-bold text-rose-600">0</p>
-            </div>
-            <div class="stat-card bg-indigo-600 text-white !border-none">
-                <p class="text-indigo-100 text-[10px] font-bold uppercase tracking-widest mb-1">Total IDs Actioned</p>
-                <p id="totalTicketsActioned" class="text-3xl font-bold">0</p>
-            </div>
-        </div>
-
-        <!-- Actioned Day Wise - COMPACT & CLEAN -->
-        <div class="mb-8 table-container">
-            <div class="p-5 border-b border-slate-100 bg-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div class="flex items-center gap-4">
-                    <h3 class="font-bold text-slate-800">Tickets Actioned (Day Wise)</h3>
-                    <div class="flex bg-slate-50 p-1 rounded-lg border border-slate-200">
-                        <button onclick="setDayFilter('7')" id="btn-7" class="toggle-btn active px-3 py-1 text-[10px] font-bold rounded transition-all">L7D</button>
-                        <button onclick="setDayFilter('all')" id="btn-all" class="toggle-btn px-3 py-1 text-[10px] font-bold rounded transition-all">ALL</button>
-                    </div>
-                </div>
-                <div class="relative w-full md:w-64">
-                    <input type="text" id="daySearch" oninput="renderDayWiseTable()" placeholder="Search date..." class="w-full bg-slate-50 border border-slate-200 rounded-lg py-1.5 pl-8 pr-3 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
-                    <svg class="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                </div>
-            </div>
-            <div class="overflow-x-auto max-h-[400px] custom-scroll">
-                <table class="w-full text-sm text-left border-collapse">
-                    <thead class="text-[10px] text-slate-400 uppercase tracking-widest bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
-                        <tr>
-                            <th class="px-6 py-4">Action Date</th>
-                            <th class="px-6 py-4 w-64">Unique User IDs Actioned</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dayWiseBody" class="divide-y divide-slate-100 bg-white">
-                        <!-- Data injected here -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Secondary Tables -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div class="table-container">
-                <div class="p-5 border-b border-slate-100 bg-white flex justify-between items-center">
-                    <h3 class="font-bold text-slate-800">Market Distribution</h3>
-                </div>
-                <div class="overflow-x-auto max-h-[500px] custom-scroll">
-                    <table class="w-full text-sm text-left">
-                        <thead class="text-[10px] text-slate-400 uppercase bg-slate-50 sticky top-0 z-10">
-                            <tr>
-                                <th class="px-6 py-4">Market</th>
-                                <th class="px-6 py-4 text-center">Volume</th>
-                                <th class="px-6 py-4 text-right">Success</th>
-                            </tr>
-                        </thead>
-                        <tbody id="marketBody" class="divide-y divide-slate-100"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="table-container">
-                <div class="p-5 border-b border-slate-100 bg-white">
-                    <h3 class="font-bold text-slate-800">Team Performance</h3>
-                </div>
-                <div class="overflow-x-auto max-h-[500px] custom-scroll">
-                    <table class="w-full text-sm text-left">
-                        <thead class="text-[10px] text-slate-400 uppercase bg-slate-50 sticky top-0 z-10">
-                            <tr>
-                                <th class="px-6 py-4">Analyst</th>
-                                <th class="px-6 py-4 text-center">Cases</th>
-                                <th class="px-6 py-4 text-right">Score</th>
-                            </tr>
-                        </thead>
-                        <tbody id="analystBody" class="divide-y divide-slate-100"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </main>
 
     <script>
         const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3zBcd8A5wSTFHWvUzbsbsCt4gJMUtrU2or1O_O_mYhgzAYuQEOsFmvynlKiBrmWLOIE0NiKSrXz5N/pub?output=csv";
+        const DASHBOARD_PASSWORD = "Loginops2026";
         
         let dataset = [];
         let filteredDataset = [];
@@ -217,6 +266,34 @@
             briefComment: ['Brief Comments', 'Brief Comment']
         };
 
+        // --- Auth Logic ---
+        function handleAuth(e) {
+            e.preventDefault();
+            const input = document.getElementById('passwordInput').value;
+            const error = document.getElementById('errorMsg');
+
+            if (input === DASHBOARD_PASSWORD) {
+                document.getElementById('authScreen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('authScreen').style.display = 'none';
+                    document.getElementById('mainDashboard').classList.remove('hidden-content');
+                    fetchData();
+                }, 500);
+            } else {
+                error.classList.remove('hidden');
+                document.getElementById('passwordInput').value = '';
+            }
+        }
+
+        function logout() {
+            document.getElementById('mainDashboard').classList.add('hidden-content');
+            document.getElementById('authScreen').style.display = 'flex';
+            document.getElementById('authScreen').style.opacity = '1';
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('errorMsg').classList.add('hidden');
+        }
+
+        // --- Data Logic ---
         function getCol(row, targets) {
             const keys = Object.keys(row);
             const key = keys.find(k => {
@@ -229,6 +306,8 @@
         async function fetchData() {
             const icon = document.getElementById('refreshIcon');
             const statusLabel = document.getElementById('syncStatus');
+            if (!icon) return;
+            
             icon.classList.add('animate-spin');
             statusLabel.innerText = "UPDATING...";
 
@@ -404,7 +483,6 @@
         }
 
         function closeDetails() { document.getElementById('detailOverlay').classList.remove('active'); }
-        window.onload = fetchData;
     </script>
 </body>
 </html>
