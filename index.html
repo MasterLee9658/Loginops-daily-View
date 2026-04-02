@@ -49,8 +49,6 @@
         .progress-bar-fill { @apply h-full bg-indigo-500 rounded-full transition-all duration-1000; }
 
         .hidden-content { display: none; }
-        
-        .rejection-row:nth-child(even) { background-color: #fffafb; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -170,37 +168,9 @@
                 </div>
             </div>
 
-            <!-- New Section: Rejection Insights (Facility/Market Wise) -->
-            <div class="mb-8 table-container border-rose-200">
-                <div class="p-5 border-b border-slate-100 bg-white flex justify-between items-center">
-                    <div class="flex items-center gap-3">
-                        <div class="h-8 w-8 bg-rose-50 text-rose-600 flex items-center justify-center rounded-lg">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                            </svg>
-                        </div>
-                        <h3 class="font-bold text-slate-800">Rejection Breakdown (By Facility)</h3>
-                    </div>
-                </div>
-                <div class="overflow-x-auto max-h-[500px] custom-scroll">
-                    <table class="w-full text-sm text-left">
-                        <thead class="text-[10px] text-slate-400 uppercase tracking-widest bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
-                            <tr>
-                                <th class="px-6 py-4 w-1/4">Facility / Market</th>
-                                <th class="px-6 py-4 w-1/4">Document Type</th>
-                                <th class="px-6 py-4">Brief Comment (Reason)</th>
-                                <th class="px-6 py-4 text-right">Records</th>
-                            </tr>
-                        </thead>
-                        <tbody id="rejectionBreakdownBody" class="divide-y divide-slate-100 bg-white">
-                            <!-- Rows will be injected here -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Team and Market Distributions -->
+            <!-- Main Content Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Market Stats -->
                 <div class="table-container">
                     <div class="p-5 border-b border-slate-100 bg-white">
                         <h3 class="font-bold text-slate-800">Success Rate by Market</h3>
@@ -219,6 +189,7 @@
                     </div>
                 </div>
 
+                <!-- Daily Volume -->
                 <div class="table-container">
                     <div class="p-5 border-b border-slate-100 bg-white">
                         <h3 class="font-bold text-slate-800">Tickets Actioned (Daily)</h3>
@@ -234,6 +205,46 @@
                             <tbody id="dayWiseBody" class="divide-y divide-slate-100"></tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+
+            <!-- Analyst Performance -->
+            <div class="table-container mb-8">
+                <div class="p-5 border-b border-slate-100 bg-white flex justify-between items-center">
+                    <h3 class="font-bold text-slate-800">Analyst Performance</h3>
+                </div>
+                <div class="overflow-x-auto max-h-[500px] custom-scroll">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-[10px] text-slate-400 uppercase bg-slate-50 sticky top-0 z-10">
+                            <tr>
+                                <th class="px-6 py-4">Analyst Name</th>
+                                <th class="px-6 py-4 text-center">Audit Volume</th>
+                                <th class="px-6 py-4">Success Rate</th>
+                                <th class="px-6 py-4 text-right">Pass/Fail</th>
+                            </tr>
+                        </thead>
+                        <tbody id="analystBody" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Rejection Summary Table -->
+            <div class="table-container border-rose-100">
+                <div class="p-5 border-b border-slate-100 bg-white flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-rose-500"></div>
+                    <h3 class="font-bold text-slate-800">Rejection Breakdown (Doc Type & Reasons)</h3>
+                </div>
+                <div class="overflow-x-auto max-h-[400px] custom-scroll">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-[10px] text-slate-400 uppercase bg-slate-50 sticky top-0 z-10">
+                            <tr>
+                                <th class="px-6 py-4">Type of Document</th>
+                                <th class="px-6 py-4">Brief Comment (Reason)</th>
+                                <th class="px-6 py-4 text-right">Rejection Count</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rejectionSummaryBody" class="divide-y divide-slate-100"></tbody>
+                    </table>
                 </div>
             </div>
         </main>
@@ -344,20 +355,33 @@
                 app: 0, 
                 rej: 0, 
                 uniqueIds: new Set(),
+                analysts: {}, 
                 markets: {}, 
                 dayWise: {},
-                rejectionReasons: [] // To store { market, docType, reason, count }
+                rejections: {}
             };
-
-            // Process Rejections and General Stats
-            const rejectionMap = {}; // Key: market|docType|comment
 
             filteredDataset.forEach(d => {
                 const s = String(d.status || '').toLowerCase();
                 const isApp = s.includes('approve') || s === 'pass' || s === 'completed';
-                const isRej = s.includes('reject') || s === 'fail' || s === 'returned' || s.includes('rejection');
+                const isRej = s.includes('reject') || s === 'fail' || s === 'returned';
 
                 if (isApp) stats.app++; else if (isRej) stats.rej++;
+
+                // Rejection Breakdown
+                if (isRej) {
+                    const docType = d.docType || 'Unspecified';
+                    const comment = d.briefComment || 'No Reason Provided';
+                    const rejKey = `${docType}|${comment}`;
+                    if (!stats.rejections[rejKey]) stats.rejections[rejKey] = { doc: docType, com: comment, count: 0 };
+                    stats.rejections[rejKey].count++;
+                }
+
+                // Analyst Stats
+                const a = d.analyst || 'Unassigned';
+                if (!stats.analysts[a]) stats.analysts[a] = { total: 0, p: 0, f: 0 };
+                stats.analysts[a].total++;
+                if (isApp) stats.analysts[a].p++; else if (isRej) stats.analysts[a].f++;
 
                 // Market Stats
                 const m = d.market || 'Unknown';
@@ -372,18 +396,8 @@
                 const dt = d.date !== '-' ? String(d.date).split(' ')[0] : 'No Date';
                 if (!stats.dayWise[dt]) stats.dayWise[dt] = new Set();
                 if (d.userId !== '-') stats.dayWise[dt].add(d.userId);
-
-                // Group Rejections
-                if (isRej) {
-                    const docType = d.docType || 'Unspecified';
-                    const comment = d.briefComment || 'No Reason Provided';
-                    const rKey = `${m}|${docType}|${comment}`;
-                    if (!rejectionMap[rKey]) rejectionMap[rKey] = { m, docType, comment, count: 0 };
-                    rejectionMap[rKey].count++;
-                }
             });
 
-            stats.rejectionReasons = Object.values(rejectionMap).sort((a,b) => b.count - a.count);
             updateUI(stats);
         }
 
@@ -393,16 +407,40 @@
             document.getElementById('totalRejected').innerText = stats.rej.toLocaleString();
             document.getElementById('totalTicketsActioned').innerText = stats.uniqueIds.size.toLocaleString();
 
-            // Render Rejection Breakdown
-            const rBody = document.getElementById('rejectionBreakdownBody');
-            rBody.innerHTML = stats.rejectionReasons.map(r => `
-                <tr class="rejection-row hover:bg-slate-50 transition-colors">
-                    <td class="px-6 py-4 font-semibold text-slate-800">${r.m}</td>
-                    <td class="px-6 py-4 text-slate-600 font-medium">${r.docType}</td>
-                    <td class="px-6 py-4 text-rose-600 text-xs italic">${r.comment}</td>
-                    <td class="px-6 py-4 text-right font-bold text-slate-500">${r.count}</td>
+            // Render Rejection Summary Table
+            const rBody = document.getElementById('rejectionSummaryBody');
+            const rejData = Object.values(stats.rejections).sort((a,b) => b.count - a.count);
+            rBody.innerHTML = rejData.length ? rejData.map(r => `
+                <tr class="hover:bg-rose-50 transition-colors">
+                    <td class="px-6 py-4 font-semibold text-slate-700">${r.doc}</td>
+                    <td class="px-6 py-4 text-slate-500 italic text-xs">${r.com}</td>
+                    <td class="px-6 py-4 text-right font-bold text-rose-600">${r.count.toLocaleString()}</td>
                 </tr>
-            `).join('') || '<tr><td colspan="4" class="px-6 py-10 text-center text-slate-400 italic">No rejections found in this period</td></tr>';
+            `).join('') : '<tr><td colspan="3" class="px-6 py-8 text-center text-slate-400">No rejections found</td></tr>';
+
+            // Render Analyst Table
+            const aBody = document.getElementById('analystBody');
+            aBody.innerHTML = Object.entries(stats.analysts).sort((a,b) => b[1].total - a[1].total).map(([name, s]) => {
+                const rate = ((s.p/s.total)*100).toFixed(1);
+                return `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-6 py-4 font-semibold text-slate-700">${name}</td>
+                    <td class="px-6 py-4 text-center font-bold text-slate-400">${s.total}</td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <span class="w-10 text-xs font-bold">${rate}%</span>
+                            <div class="progress-bar-bg flex-1">
+                                <div class="progress-bar-fill" style="width: ${rate}%; background: ${rate > 90 ? '#10b981' : rate > 70 ? '#6366f1' : '#f43f5e'}"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <span class="text-xs font-bold text-emerald-600">${s.p}P</span>
+                        <span class="mx-1 text-slate-300">/</span>
+                        <span class="text-xs font-bold text-rose-500">${s.f}F</span>
+                    </td>
+                </tr>
+            `}).join('');
 
             // Render Market Table
             const mBody = document.getElementById('marketBody');
