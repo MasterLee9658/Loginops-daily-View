@@ -11,7 +11,6 @@
         
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #1e293b; margin: 0; overflow-x: hidden; }
         
-        /* Auth Screen Styling */
         #authScreen {
             position: fixed;
             inset: 0;
@@ -29,7 +28,7 @@
             box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
         }
         .stat-card { @apply p-6 rounded-2xl glass-card transition-all duration-300 hover:shadow-md; }
-        .table-container { @apply overflow-hidden rounded-2xl glass-card; }
+        .table-container { @apply overflow-hidden rounded-2xl glass-card bg-white; }
         
         .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: transparent; }
@@ -50,6 +49,8 @@
         .progress-bar-fill { @apply h-full bg-indigo-500 rounded-full transition-all duration-1000; }
 
         .hidden-content { display: none; }
+        
+        .rejection-row:nth-child(even) { background-color: #fffafb; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -64,7 +65,7 @@
                     </svg>
                 </div>
                 <h2 class="text-2xl font-bold text-slate-900 mb-2">Restricted Access</h2>
-                <p class="text-slate-500 text-sm mb-8">Please enter the security password to view the Operational Performance Dashboard.</p>
+                <p class="text-slate-500 text-sm mb-8">Please enter the security password to view the Dashboard.</p>
                 
                 <form id="loginForm" onsubmit="handleAuth(event)" class="space-y-4">
                     <div class="text-left">
@@ -81,41 +82,36 @@
         </div>
     </div>
 
-    <!-- Main Dashboard Content (Initially Hidden) -->
+    <!-- Main Dashboard Content -->
     <div id="mainDashboard" class="hidden-content">
-        <!-- Detailed Drill-down Overlay -->
+        <!-- Detail Overlay -->
         <div id="detailOverlay" class="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm flex justify-end">
             <div class="w-full max-w-5xl bg-white h-full shadow-2xl flex flex-col">
                 <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-900 text-white">
                     <div>
-                        <h2 id="detailTitle" class="text-xl font-bold">Facility Details</h2>
-                        <p id="detailSubtitle" class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Audit Log Visualization</p>
+                        <h2 id="detailTitle" class="text-xl font-bold">Details</h2>
+                        <p id="detailSubtitle" class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Full Record View</p>
                     </div>
-                    <div class="flex items-center gap-4">
-                        <button onclick="closeDetails()" class="p-2 hover:bg-slate-800 rounded-lg transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
+                    <button onclick="closeDetails()" class="p-2 hover:bg-slate-800 rounded-lg transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
                 </div>
-                
-                <div class="flex-1 overflow-hidden flex flex-col p-6 bg-slate-50">
-                    <div class="flex-1 bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm flex flex-col">
-                        <div class="overflow-auto custom-scroll flex-1">
-                            <table class="w-full text-xs text-left min-w-[1200px]">
-                                <thead class="bg-slate-50 text-slate-500 uppercase font-bold sticky top-0 z-10">
-                                    <tr>
-                                        <th class="px-4 py-4 border-b border-slate-200">Program</th>
-                                        <th class="px-4 py-4 border-b border-slate-200">Vendor</th>
-                                        <th class="px-4 py-4 border-b border-slate-200">Type</th>
-                                        <th class="px-4 py-4 border-b border-slate-200">Brief Comment</th>
-                                        <th class="px-4 py-4 border-b border-slate-200 text-right">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="detailCaseBody" class="divide-y divide-slate-100"></tbody>
-                            </table>
-                        </div>
+                <div class="flex-1 overflow-hidden p-6 bg-slate-50">
+                    <div class="h-full bg-white rounded-xl border border-slate-200 overflow-auto custom-scroll shadow-sm">
+                        <table class="w-full text-xs text-left min-w-[1000px]">
+                            <thead class="bg-slate-50 text-slate-500 uppercase font-bold sticky top-0 z-10">
+                                <tr>
+                                    <th class="px-4 py-4 border-b border-slate-200">Program</th>
+                                    <th class="px-4 py-4 border-b border-slate-200">Vendor</th>
+                                    <th class="px-4 py-4 border-b border-slate-200">Type</th>
+                                    <th class="px-4 py-4 border-b border-slate-200">Brief Comment</th>
+                                    <th class="px-4 py-4 border-b border-slate-200 text-right">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detailCaseBody" class="divide-y divide-slate-100"></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -131,21 +127,20 @@
                         </svg>
                     </div>
                     <div>
-                        <h1 class="text-lg font-bold text-slate-900 tracking-tight">Executive Dashboard</h1>
+                        <h1 class="text-lg font-bold text-slate-900 tracking-tight">Analytics Dashboard</h1>
                         <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest" id="syncStatus">Loading...</p>
                     </div>
                 </div>
-
                 <div class="flex items-center gap-3">
-                    <select id="monthFilter" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 text-sm font-semibold text-slate-700 px-4 py-2 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+                    <select id="monthFilter" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 text-sm font-semibold text-slate-700 px-4 py-2 rounded-xl focus:ring-2 focus:ring-indigo-500">
                         <option value="all">All Months</option>
                     </select>
-                    <button onclick="fetchData()" class="p-2.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-sm transition-all">
+                    <button onclick="fetchData()" class="p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50">
                         <svg id="refreshIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
                     </button>
-                    <button onclick="logout()" class="p-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all" title="Logout">
+                    <button onclick="logout()" class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                         </svg>
@@ -155,67 +150,68 @@
         </nav>
 
         <main class="max-w-[1400px] mx-auto px-6 py-8">
-            <!-- Stats Grid -->
+            <!-- Stats -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <div class="stat-card">
-                    <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Audit Volume</p>
+                    <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Total Audit Volume</p>
                     <p id="totalVolume" class="text-3xl font-bold">0</p>
                 </div>
                 <div class="stat-card">
                     <p class="text-emerald-500 text-[10px] font-bold uppercase tracking-widest mb-1">Approved Cases</p>
                     <p id="totalApproved" class="text-3xl font-bold text-emerald-600">0</p>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card border-rose-100">
                     <p class="text-rose-500 text-[10px] font-bold uppercase tracking-widest mb-1">Rejected Cases</p>
                     <p id="totalRejected" class="text-3xl font-bold text-rose-600">0</p>
                 </div>
                 <div class="stat-card bg-indigo-600 text-white !border-none">
-                    <p class="text-indigo-100 text-[10px] font-bold uppercase tracking-widest mb-1">Total IDs Actioned</p>
+                    <p class="text-indigo-100 text-[10px] font-bold uppercase tracking-widest mb-1">Total Unique IDs</p>
                     <p id="totalTicketsActioned" class="text-3xl font-bold">0</p>
                 </div>
             </div>
 
-            <!-- Actioned Day Wise -->
-            <div class="mb-8 table-container">
-                <div class="p-5 border-b border-slate-100 bg-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div class="flex items-center gap-4">
-                        <h3 class="font-bold text-slate-800">Tickets Actioned (Day Wise)</h3>
-                        <div class="flex bg-slate-50 p-1 rounded-lg border border-slate-200">
-                            <button onclick="setDayFilter('7')" id="btn-7" class="toggle-btn active px-3 py-1 text-[10px] font-bold rounded transition-all">L7D</button>
-                            <button onclick="setDayFilter('all')" id="btn-all" class="toggle-btn px-3 py-1 text-[10px] font-bold rounded transition-all">ALL</button>
+            <!-- New Section: Rejection Insights (Facility/Market Wise) -->
+            <div class="mb-8 table-container border-rose-200">
+                <div class="p-5 border-b border-slate-100 bg-white flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <div class="h-8 w-8 bg-rose-50 text-rose-600 flex items-center justify-center rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
                         </div>
-                    </div>
-                    <div class="relative w-full md:w-64">
-                        <input type="text" id="daySearch" oninput="renderDayWiseTable()" placeholder="Search date..." class="w-full bg-slate-50 border border-slate-200 rounded-lg py-1.5 pl-8 pr-3 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
-                        <svg class="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        <h3 class="font-bold text-slate-800">Rejection Breakdown (By Facility)</h3>
                     </div>
                 </div>
-                <div class="overflow-x-auto max-h-[400px] custom-scroll">
-                    <table class="w-full text-sm text-left border-collapse">
+                <div class="overflow-x-auto max-h-[500px] custom-scroll">
+                    <table class="w-full text-sm text-left">
                         <thead class="text-[10px] text-slate-400 uppercase tracking-widest bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
                             <tr>
-                                <th class="px-6 py-4">Action Date</th>
-                                <th class="px-6 py-4 w-64">Unique User IDs Actioned</th>
+                                <th class="px-6 py-4 w-1/4">Facility / Market</th>
+                                <th class="px-6 py-4 w-1/4">Document Type</th>
+                                <th class="px-6 py-4">Brief Comment (Reason)</th>
+                                <th class="px-6 py-4 text-right">Records</th>
                             </tr>
                         </thead>
-                        <tbody id="dayWiseBody" class="divide-y divide-slate-100 bg-white"></tbody>
+                        <tbody id="rejectionBreakdownBody" class="divide-y divide-slate-100 bg-white">
+                            <!-- Rows will be injected here -->
+                        </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Secondary Tables -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Team and Market Distributions -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <div class="table-container">
-                    <div class="p-5 border-b border-slate-100 bg-white flex justify-between items-center">
-                        <h3 class="font-bold text-slate-800">Market Distribution</h3>
+                    <div class="p-5 border-b border-slate-100 bg-white">
+                        <h3 class="font-bold text-slate-800">Success Rate by Market</h3>
                     </div>
-                    <div class="overflow-x-auto max-h-[500px] custom-scroll">
+                    <div class="overflow-x-auto max-h-[400px] custom-scroll">
                         <table class="w-full text-sm text-left">
                             <thead class="text-[10px] text-slate-400 uppercase bg-slate-50 sticky top-0 z-10">
                                 <tr>
                                     <th class="px-6 py-4">Market</th>
-                                    <th class="px-6 py-4 text-center">Volume</th>
-                                    <th class="px-6 py-4 text-right">Success</th>
+                                    <th class="px-6 py-4 text-center">Total</th>
+                                    <th class="px-6 py-4 text-right">Pass Rate</th>
                                 </tr>
                             </thead>
                             <tbody id="marketBody" class="divide-y divide-slate-100"></tbody>
@@ -225,18 +221,17 @@
 
                 <div class="table-container">
                     <div class="p-5 border-b border-slate-100 bg-white">
-                        <h3 class="font-bold text-slate-800">Team Performance</h3>
+                        <h3 class="font-bold text-slate-800">Tickets Actioned (Daily)</h3>
                     </div>
-                    <div class="overflow-x-auto max-h-[500px] custom-scroll">
+                    <div class="overflow-x-auto max-h-[400px] custom-scroll">
                         <table class="w-full text-sm text-left">
                             <thead class="text-[10px] text-slate-400 uppercase bg-slate-50 sticky top-0 z-10">
                                 <tr>
-                                    <th class="px-6 py-4">Analyst</th>
-                                    <th class="px-6 py-4 text-center">Cases</th>
-                                    <th class="px-6 py-4 text-right">Score</th>
+                                    <th class="px-6 py-4">Date</th>
+                                    <th class="px-6 py-4 text-right">Unique IDs</th>
                                 </tr>
                             </thead>
-                            <tbody id="analystBody" class="divide-y divide-slate-100"></tbody>
+                            <tbody id="dayWiseBody" class="divide-y divide-slate-100"></tbody>
                         </table>
                     </div>
                 </div>
@@ -246,12 +241,10 @@
 
     <script>
         const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3zBcd8A5wSTFHWvUzbsbsCt4gJMUtrU2or1O_O_mYhgzAYuQEOsFmvynlKiBrmWLOIE0NiKSrXz5N/pub?output=csv";
-        const DASHBOARD_PASSWORD = "Loginops2026";
+        const DASHBOARD_PASSWORD = "admin123";
         
         let dataset = [];
         let filteredDataset = [];
-        let dayLimit = '7';
-        let currentDayWiseStats = {};
         
         const MAPPING = {
             analyst: ['Analyst Name', 'Action Taken By', 'Analyst'],
@@ -266,12 +259,9 @@
             briefComment: ['Brief Comments', 'Brief Comment']
         };
 
-        // --- Auth Logic ---
         function handleAuth(e) {
             e.preventDefault();
             const input = document.getElementById('passwordInput').value;
-            const error = document.getElementById('errorMsg');
-
             if (input === DASHBOARD_PASSWORD) {
                 document.getElementById('authScreen').style.opacity = '0';
                 setTimeout(() => {
@@ -280,7 +270,7 @@
                     fetchData();
                 }, 500);
             } else {
-                error.classList.remove('hidden');
+                document.getElementById('errorMsg').classList.remove('hidden');
                 document.getElementById('passwordInput').value = '';
             }
         }
@@ -290,10 +280,8 @@
             document.getElementById('authScreen').style.display = 'flex';
             document.getElementById('authScreen').style.opacity = '1';
             document.getElementById('passwordInput').value = '';
-            document.getElementById('errorMsg').classList.add('hidden');
         }
 
-        // --- Data Logic ---
         function getCol(row, targets) {
             const keys = Object.keys(row);
             const key = keys.find(k => {
@@ -306,8 +294,6 @@
         async function fetchData() {
             const icon = document.getElementById('refreshIcon');
             const statusLabel = document.getElementById('syncStatus');
-            if (!icon) return;
-            
             icon.classList.add('animate-spin');
             statusLabel.innerText = "UPDATING...";
 
@@ -328,7 +314,7 @@
                         program: getCol(row, MAPPING.program),
                         docType: getCol(row, MAPPING.docType),
                         briefComment: getCol(row, MAPPING.briefComment)
-                    })).filter(item => item.analyst !== '-' || item.market !== '-');
+                    })).filter(item => item.market !== '-' || item.analyst !== '-');
                     
                     populateFilters();
                     applyFilters();
@@ -357,104 +343,83 @@
                 total: filteredDataset.length, 
                 app: 0, 
                 rej: 0, 
+                uniqueIds: new Set(),
                 markets: {}, 
-                analysts: {},
                 dayWise: {},
-                uniqueUserIds: new Set()
+                rejectionReasons: [] // To store { market, docType, reason, count }
             };
 
+            // Process Rejections and General Stats
+            const rejectionMap = {}; // Key: market|docType|comment
+
             filteredDataset.forEach(d => {
-                const s = String(d.status || '').toLowerCase().trim();
-                const isApp = s.includes('approve') || s === 'pass' || s === 'completed' || s === 'closed';
+                const s = String(d.status || '').toLowerCase();
+                const isApp = s.includes('approve') || s === 'pass' || s === 'completed';
                 const isRej = s.includes('reject') || s === 'fail' || s === 'returned' || s.includes('rejection');
 
                 if (isApp) stats.app++; else if (isRej) stats.rej++;
 
-                const dt = d.date !== '-' ? String(d.date).split(' ')[0] : 'No Date';
-                const uid = d.userId;
-                if (!stats.dayWise[dt]) stats.dayWise[dt] = new Set();
-                if (uid !== '-' && uid) {
-                    stats.dayWise[dt].add(uid);
-                    stats.uniqueUserIds.add(uid);
-                }
-
+                // Market Stats
                 const m = d.market || 'Unknown';
                 if (!stats.markets[m]) stats.markets[m] = { total: 0, p: 0 };
                 stats.markets[m].total++;
                 if (isApp) stats.markets[m].p++;
 
-                const a = d.analyst || 'N/A';
-                if (!stats.analysts[a]) stats.analysts[a] = { total: 0, p: 0 };
-                stats.analysts[a].total++;
-                if (isApp) stats.analysts[a].p++;
+                // Unique ID Stats
+                if (d.userId !== '-') stats.uniqueIds.add(d.userId);
+
+                // Daily Stats
+                const dt = d.date !== '-' ? String(d.date).split(' ')[0] : 'No Date';
+                if (!stats.dayWise[dt]) stats.dayWise[dt] = new Set();
+                if (d.userId !== '-') stats.dayWise[dt].add(d.userId);
+
+                // Group Rejections
+                if (isRej) {
+                    const docType = d.docType || 'Unspecified';
+                    const comment = d.briefComment || 'No Reason Provided';
+                    const rKey = `${m}|${docType}|${comment}`;
+                    if (!rejectionMap[rKey]) rejectionMap[rKey] = { m, docType, comment, count: 0 };
+                    rejectionMap[rKey].count++;
+                }
             });
-            
-            currentDayWiseStats = stats.dayWise;
+
+            stats.rejectionReasons = Object.values(rejectionMap).sort((a,b) => b.count - a.count);
             updateUI(stats);
-        }
-
-        function setDayFilter(limit) {
-            dayLimit = limit;
-            document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(`btn-${limit}`).classList.add('active');
-            renderDayWiseTable();
-        }
-
-        function renderDayWiseTable() {
-            const dwBody = document.getElementById('dayWiseBody');
-            const search = document.getElementById('daySearch').value.toLowerCase();
-            
-            let entries = Object.entries(currentDayWiseStats)
-                .sort((a, b) => new Date(b[0]) - new Date(a[0]));
-
-            if (search) {
-                entries = entries.filter(([date]) => date.toLowerCase().includes(search));
-            } else if (dayLimit === '7') {
-                entries = entries.slice(0, 7);
-            }
-
-            const maxCount = Math.max(...entries.map(e => e[1].size), 1);
-
-            dwBody.innerHTML = entries.map(([date, userSet]) => {
-                const percentage = (userSet.size / maxCount) * 100;
-                return `
-                <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="px-6 py-4 font-semibold text-slate-600">${date}</td>
-                    <td class="px-6 py-4">
-                        <div class="flex items-center justify-between gap-3">
-                            <span class="font-bold text-slate-800 min-w-[3rem]">${userSet.size}</span>
-                            <div class="progress-bar-bg flex-1 max-w-[120px]">
-                                <div class="progress-bar-fill" style="width: ${percentage}%"></div>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
-            `}).join('') || '<tr><td colspan="2" class="px-6 py-8 text-center text-slate-400 italic">No data matched</td></tr>';
         }
 
         function updateUI(stats) {
             document.getElementById('totalVolume').innerText = stats.total.toLocaleString();
             document.getElementById('totalApproved').innerText = stats.app.toLocaleString();
             document.getElementById('totalRejected').innerText = stats.rej.toLocaleString();
-            document.getElementById('totalTicketsActioned').innerText = stats.uniqueUserIds.size.toLocaleString();
+            document.getElementById('totalTicketsActioned').innerText = stats.uniqueIds.size.toLocaleString();
 
-            renderDayWiseTable();
+            // Render Rejection Breakdown
+            const rBody = document.getElementById('rejectionBreakdownBody');
+            rBody.innerHTML = stats.rejectionReasons.map(r => `
+                <tr class="rejection-row hover:bg-slate-50 transition-colors">
+                    <td class="px-6 py-4 font-semibold text-slate-800">${r.m}</td>
+                    <td class="px-6 py-4 text-slate-600 font-medium">${r.docType}</td>
+                    <td class="px-6 py-4 text-rose-600 text-xs italic">${r.comment}</td>
+                    <td class="px-6 py-4 text-right font-bold text-slate-500">${r.count}</td>
+                </tr>
+            `).join('') || '<tr><td colspan="4" class="px-6 py-10 text-center text-slate-400 italic">No rejections found in this period</td></tr>';
 
+            // Render Market Table
             const mBody = document.getElementById('marketBody');
             mBody.innerHTML = Object.entries(stats.markets).sort((a,b) => b[1].total - a[1].total).map(([name, s]) => `
-                <tr class="hover:bg-slate-50 transition-colors cursor-pointer group" onclick="showMarketDetails('${name.replace(/'/g, "\\'")}')">
-                    <td class="px-6 py-4 font-medium text-slate-700 group-hover:text-indigo-600">${name}</td>
+                <tr class="hover:bg-slate-50 transition-colors cursor-pointer" onclick="showMarketDetails('${name.replace(/'/g, "\\'")}')">
+                    <td class="px-6 py-4 font-medium text-slate-700">${name}</td>
                     <td class="px-6 py-4 text-center font-bold text-slate-400">${s.total}</td>
-                    <td class="px-6 py-4 text-right font-extrabold text-slate-800">${s.total > 0 ? ((s.p/s.total)*100).toFixed(1) : 0}%</td>
+                    <td class="px-6 py-4 text-right font-extrabold text-slate-800">${((s.p/s.total)*100).toFixed(1)}%</td>
                 </tr>
             `).join('');
 
-            const aBody = document.getElementById('analystBody');
-            aBody.innerHTML = Object.entries(stats.analysts).sort((a,b) => b[1].total - a[1].total).map(([name, s]) => `
-                <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="px-6 py-4 font-medium text-slate-700">${name}</td>
-                    <td class="px-6 py-4 text-center font-bold text-slate-400">${s.total}</td>
-                    <td class="px-6 py-4 text-right font-extrabold text-indigo-600">${s.total > 0 ? ((s.p/s.total)*100).toFixed(1) : 0}%</td>
+            // Render Day Wise Table
+            const dwBody = document.getElementById('dayWiseBody');
+            dwBody.innerHTML = Object.entries(stats.dayWise).sort((a,b) => new Date(b[0]) - new Date(a[0])).slice(0, 10).map(([date, uids]) => `
+                <tr class="hover:bg-slate-50">
+                    <td class="px-6 py-4 font-medium text-slate-600">${date}</td>
+                    <td class="px-6 py-4 text-right font-bold text-indigo-600">${uids.size}</td>
                 </tr>
             `).join('');
         }
@@ -463,7 +428,7 @@
             const marketData = filteredDataset.filter(d => d.market === name);
             document.getElementById('detailTitle').innerText = name;
             const dBody = document.getElementById('detailCaseBody');
-            dBody.innerHTML = marketData.slice(0, 100).map(r => {
+            dBody.innerHTML = marketData.slice(0, 200).map(r => {
                 const s = String(r.status || '').toLowerCase();
                 const isApp = s.includes('approve') || s === 'pass' || s === 'completed';
                 return `
@@ -474,7 +439,7 @@
                     <td class="px-4 py-3 text-slate-400 italic max-w-[200px] truncate">${r.briefComment || '-'}</td>
                     <td class="px-4 py-3 text-right">
                         <span class="text-[9px] font-bold uppercase px-2 py-1 rounded ${isApp ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}">
-                            ${isApp ? 'Pass' : 'Fail'}
+                            ${isApp ? 'Approved' : 'Rejected'}
                         </span>
                     </td>
                 </tr>
