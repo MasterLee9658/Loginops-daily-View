@@ -9,14 +9,13 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #1e293b; }
         .glass-card { 
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
         }
-        .stat-card { @apply p-5 rounded-2xl glass-card transition-all duration-300 hover:translate-y-[-2px]; }
+        .stat-card { @apply p-6 rounded-2xl glass-card transition-all duration-300 hover:shadow-md; }
         .table-container { @apply overflow-hidden rounded-2xl glass-card; }
         
         .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -31,28 +30,25 @@
             transform: translateX(0);
         }
 
-        .toggle-btn.active { @apply bg-indigo-600 text-white shadow-md; }
-        .toggle-btn:not(.active) { @apply text-slate-400 hover:bg-slate-100; }
+        .toggle-btn.active { @apply bg-indigo-600 text-white shadow-sm; }
+        .toggle-btn:not(.active) { @apply text-slate-500 hover:bg-slate-100; }
+        
+        .progress-bar-bg { @apply h-1.5 w-full bg-slate-100 rounded-full overflow-hidden mt-1; }
+        .progress-bar-fill { @apply h-full bg-indigo-500 rounded-full transition-all duration-1000; }
     </style>
 </head>
-<body class="min-h-screen overflow-x-hidden">
+<body class="min-h-screen">
 
     <!-- Detailed Drill-down Overlay -->
     <div id="detailOverlay" class="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm flex justify-end">
         <div class="w-full max-w-5xl bg-white h-full shadow-2xl flex flex-col">
-            <!-- Header -->
-            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-indigo-600 text-white">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-900 text-white">
                 <div>
-                    <h2 id="detailTitle" class="text-2xl font-bold">Facility Details</h2>
-                    <p id="detailSubtitle" class="text-xs text-indigo-100 uppercase tracking-widest mt-1">Comprehensive Case Audit</p>
+                    <h2 id="detailTitle" class="text-xl font-bold">Facility Details</h2>
+                    <p id="detailSubtitle" class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Audit Log Visualization</p>
                 </div>
                 <div class="flex items-center gap-4">
-                    <div id="overlayStats" class="hidden sm:flex gap-4 mr-6 text-sm">
-                        <span class="bg-indigo-500 px-3 py-1 rounded-full"><b id="mTotal">0</b> Cases</span>
-                        <span class="bg-emerald-500 px-3 py-1 rounded-full"><b id="mApp">0</b> Approved</span>
-                        <span class="bg-rose-500 px-3 py-1 rounded-full"><b id="mRej">0</b> Rejected</span>
-                    </div>
-                    <button onclick="closeDetails()" class="p-2 hover:bg-indigo-500 rounded-lg transition-colors">
+                    <button onclick="closeDetails()" class="p-2 hover:bg-slate-800 rounded-lg transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -60,36 +56,20 @@
                 </div>
             </div>
             
-            <!-- Content Area -->
-            <div class="flex-1 overflow-hidden flex flex-col p-6">
-                <div class="mb-4 flex justify-between items-end">
-                    <h4 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1.01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        Detailed Audit Log
-                    </h4>
-                    <div class="text-[10px] text-slate-400 font-bold uppercase">Scroll horizontally for comments</div>
-                </div>
-
+            <div class="flex-1 overflow-hidden flex flex-col p-6 bg-slate-50">
                 <div class="flex-1 bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm flex flex-col">
                     <div class="overflow-auto custom-scroll flex-1">
-                        <table class="w-full text-xs text-left min-w-[1400px]">
+                        <table class="w-full text-xs text-left min-w-[1200px]">
                             <thead class="bg-slate-50 text-slate-500 uppercase font-bold sticky top-0 z-10">
                                 <tr>
                                     <th class="px-4 py-4 border-b border-slate-200">Program</th>
                                     <th class="px-4 py-4 border-b border-slate-200">Vendor</th>
-                                    <th class="px-4 py-4 border-b border-slate-200">Doc Type</th>
-                                    <th class="px-4 py-4 border-b border-slate-200">Brief Comments</th>
-                                    <th class="px-4 py-4 border-b border-slate-200">Detailed Comments</th>
-                                    <th class="px-4 py-4 border-b border-slate-200">Short Comments</th>
-                                    <th class="px-4 py-4 border-b border-slate-200 text-center">Analyst</th>
+                                    <th class="px-4 py-4 border-b border-slate-200">Type</th>
+                                    <th class="px-4 py-4 border-b border-slate-200">Brief Comment</th>
                                     <th class="px-4 py-4 border-b border-slate-200 text-right">Status</th>
                                 </tr>
                             </thead>
-                            <tbody id="detailCaseBody" class="divide-y divide-slate-100">
-                                <!-- Data injected here -->
-                            </tbody>
+                            <tbody id="detailCaseBody" class="divide-y divide-slate-100"></tbody>
                         </table>
                     </div>
                 </div>
@@ -98,28 +78,26 @@
     </div>
 
     <!-- Navigation -->
-    <nav class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
-        <div class="max-w-[1400px] mx-auto px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-[1400px] mx-auto px-6 py-4 flex justify-between items-center">
             <div class="flex items-center gap-4">
-                <div class="h-10 w-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
+                <div class="h-10 w-10 bg-indigo-600 rounded-xl flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold text-slate-800 tracking-tight">Performance Matrix</h1>
-                    <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest" id="syncStatus">Initializing...</p>
+                    <h1 class="text-lg font-bold text-slate-900 tracking-tight">Executive Dashboard</h1>
+                    <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest" id="syncStatus">Loading...</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-3">
-                <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
-                    <select id="monthFilter" onchange="applyFilters()" class="bg-transparent text-sm font-semibold text-slate-600 px-3 py-1.5 outline-none cursor-pointer">
-                        <option value="all">Full Year</option>
-                    </select>
-                </div>
-                <button onclick="fetchData()" class="p-2.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl transition-all shadow-sm group">
-                    <svg id="refreshIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-500 group-hover:text-indigo-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <select id="monthFilter" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 text-sm font-semibold text-slate-700 px-4 py-2 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="all">All Months</option>
+                </select>
+                <button onclick="fetchData()" class="p-2.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-sm transition-all">
+                    <svg id="refreshIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
                 </button>
@@ -128,100 +106,90 @@
     </nav>
 
     <main class="max-w-[1400px] mx-auto px-6 py-8">
-        <div id="errorBanner" class="hidden mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-sm font-medium flex justify-between items-center">
-            <span id="errorMessage"></span>
-            <button onclick="fetchData()" class="underline font-bold hover:text-rose-900 ml-4">Retry</button>
-        </div>
-
-        <!-- Global Stats -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div class="stat-card">
-                <div class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Total Volume</div>
-                <div id="totalVolume" class="text-3xl font-extrabold text-slate-800">0</div>
+                <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Audit Volume</p>
+                <p id="totalVolume" class="text-3xl font-bold">0</p>
             </div>
-            <div class="stat-card border-b-4 border-emerald-500">
-                <div class="text-emerald-500 text-[10px] font-bold uppercase tracking-widest mb-1">Total Approved</div>
-                <div id="totalApproved" class="text-3xl font-extrabold text-emerald-600">0</div>
+            <div class="stat-card">
+                <p class="text-emerald-500 text-[10px] font-bold uppercase tracking-widest mb-1">Approved Cases</p>
+                <p id="totalApproved" class="text-3xl font-bold text-emerald-600">0</p>
             </div>
-            <div class="stat-card border-b-4 border-rose-500">
-                <div class="text-rose-500 text-[10px] font-bold uppercase tracking-widest mb-1">Total Rejected</div>
-                <div id="totalRejected" class="text-3xl font-extrabold text-rose-600">0</div>
+            <div class="stat-card">
+                <p class="text-rose-500 text-[10px] font-bold uppercase tracking-widest mb-1">Rejected Cases</p>
+                <p id="totalRejected" class="text-3xl font-bold text-rose-600">0</p>
             </div>
-            <div class="stat-card bg-slate-900 !border-none text-white">
-                <div class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Tickets Actioned</div>
-                <div id="totalTicketsActioned" class="text-3xl font-extrabold text-indigo-400">0</div>
+            <div class="stat-card bg-indigo-600 text-white !border-none">
+                <p class="text-indigo-100 text-[10px] font-bold uppercase tracking-widest mb-1">Total IDs Actioned</p>
+                <p id="totalTicketsActioned" class="text-3xl font-bold">0</p>
             </div>
         </div>
 
-        <!-- Tickets Actioned Day Wise Table -->
-        <div class="mb-10 table-container">
-            <div class="p-5 border-b border-slate-100 bg-white/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div class="flex items-center gap-3">
+        <!-- Actioned Day Wise - COMPACT & CLEAN -->
+        <div class="mb-8 table-container">
+            <div class="p-5 border-b border-slate-100 bg-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div class="flex items-center gap-4">
                     <h3 class="font-bold text-slate-800">Tickets Actioned (Day Wise)</h3>
-                    <div class="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
-                        <button onclick="setDayFilter('7')" id="btn-7" class="toggle-btn active px-3 py-1 text-[10px] font-bold rounded-md transition-all">LAST 7D</button>
-                        <button onclick="setDayFilter('all')" id="btn-all" class="toggle-btn px-3 py-1 text-[10px] font-bold rounded-md transition-all">ALL TIME</button>
+                    <div class="flex bg-slate-50 p-1 rounded-lg border border-slate-200">
+                        <button onclick="setDayFilter('7')" id="btn-7" class="toggle-btn active px-3 py-1 text-[10px] font-bold rounded transition-all">L7D</button>
+                        <button onclick="setDayFilter('all')" id="btn-all" class="toggle-btn px-3 py-1 text-[10px] font-bold rounded transition-all">ALL</button>
                     </div>
                 </div>
                 <div class="relative w-full md:w-64">
-                    <input type="text" id="daySearch" oninput="renderDayWiseTable()" placeholder="Search date..." class="w-full bg-slate-50 border border-slate-200 rounded-lg py-1.5 pl-8 pr-3 text-xs focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                    <input type="text" id="daySearch" oninput="renderDayWiseTable()" placeholder="Search date..." class="w-full bg-slate-50 border border-slate-200 rounded-lg py-1.5 pl-8 pr-3 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
                     <svg class="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 </div>
             </div>
-            <div class="overflow-x-auto max-h-[350px] custom-scroll">
-                <table class="w-full text-sm text-left">
-                    <thead class="text-[10px] text-slate-400 uppercase tracking-widest bg-slate-50/50 sticky top-0 z-10">
+            <div class="overflow-x-auto max-h-[400px] custom-scroll">
+                <table class="w-full text-sm text-left border-collapse">
+                    <thead class="text-[10px] text-slate-400 uppercase tracking-widest bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
                         <tr>
                             <th class="px-6 py-4">Action Date</th>
-                            <th class="px-6 py-4 text-right">Unique User IDs</th>
+                            <th class="px-6 py-4 w-64">Unique User IDs Actioned</th>
                         </tr>
                     </thead>
                     <tbody id="dayWiseBody" class="divide-y divide-slate-100 bg-white">
-                        <!-- Rows injected here -->
+                        <!-- Data injected here -->
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- Dashboard Tables Grid -->
+        <!-- Secondary Tables -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div class="table-container">
-                <div class="p-5 border-b border-slate-100 bg-white/50 flex justify-between items-center">
-                    <h3 class="font-bold text-slate-800">Market Performance</h3>
-                    <span class="text-[10px] text-indigo-500 font-bold uppercase bg-indigo-50 px-2 py-1 rounded">Click for Audit Trail</span>
+                <div class="p-5 border-b border-slate-100 bg-white flex justify-between items-center">
+                    <h3 class="font-bold text-slate-800">Market Distribution</h3>
                 </div>
-                <div class="overflow-x-auto max-h-[600px] custom-scroll">
+                <div class="overflow-x-auto max-h-[500px] custom-scroll">
                     <table class="w-full text-sm text-left">
-                        <thead class="text-[10px] text-slate-400 uppercase tracking-widest bg-slate-50/50 sticky top-0 z-10">
+                        <thead class="text-[10px] text-slate-400 uppercase bg-slate-50 sticky top-0 z-10">
                             <tr>
-                                <th class="px-6 py-4">Facility</th>
-                                <th class="px-6 py-4 text-center">Total</th>
-                                <th class="px-6 py-4 text-center">Approved</th>
-                                <th class="px-6 py-4 text-center">Rejected</th>
+                                <th class="px-6 py-4">Market</th>
+                                <th class="px-6 py-4 text-center">Volume</th>
                                 <th class="px-6 py-4 text-right">Success</th>
                             </tr>
                         </thead>
-                        <tbody id="marketBody" class="divide-y divide-slate-100 bg-white"></tbody>
+                        <tbody id="marketBody" class="divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
             </div>
 
             <div class="table-container">
-                <div class="p-5 border-b border-slate-100 bg-white/50">
-                    <h3 class="font-bold text-slate-800">Analyst Rankings</h3>
+                <div class="p-5 border-b border-slate-100 bg-white">
+                    <h3 class="font-bold text-slate-800">Team Performance</h3>
                 </div>
-                <div class="overflow-x-auto max-h-[600px] custom-scroll">
+                <div class="overflow-x-auto max-h-[500px] custom-scroll">
                     <table class="w-full text-sm text-left">
-                        <thead class="text-[10px] text-slate-400 uppercase tracking-widest bg-slate-50/50 sticky top-0 z-10">
+                        <thead class="text-[10px] text-slate-400 uppercase bg-slate-50 sticky top-0 z-10">
                             <tr>
-                                <th class="px-6 py-4">Analyst Name</th>
-                                <th class="px-6 py-4 text-center">Volume</th>
-                                <th class="px-6 py-4 text-center">Approve</th>
-                                <th class="px-6 py-4 text-center">Reject</th>
+                                <th class="px-6 py-4">Analyst</th>
+                                <th class="px-6 py-4 text-center">Cases</th>
                                 <th class="px-6 py-4 text-right">Score</th>
                             </tr>
                         </thead>
-                        <tbody id="analystBody" class="divide-y divide-slate-100 bg-white"></tbody>
+                        <tbody id="analystBody" class="divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
             </div>
@@ -233,32 +201,27 @@
         
         let dataset = [];
         let filteredDataset = [];
-        let dayLimit = '7'; // Default filter
+        let dayLimit = '7';
         let currentDayWiseStats = {};
         
         const MAPPING = {
-            analyst: ['Analyst Name', 'Action Taken By', 'Analyst', 'Analyst_Name'],
-            status: ['Final Status', 'Status', 'Final Result', 'Trade Status', 'Case Status'],
-            market: ['Facility', 'Market Name', 'Kolkata_Market', 'Market', 'Location'],
-            month: ['Month', 'Period', 'GMV Month', 'Cycle'],
-            date: ['Date', 'Action Date', 'Created Date', 'Time'],
-            userId: ['User ID', 'UserId', 'ID', 'Account ID', 'User_ID'],
-            vendor: ['Vendor Name', 'Vendor', 'Supplier', 'Vendor_Name'],
-            program: ['Program Name', 'Program', 'Trade Program', 'Program_Name'],
-            docType: ['Type of Document', 'Doc Type', 'Document', 'Document Type'],
-            briefComment: ['Brief Comments', 'Brief Comment', 'Rejection Comments', 'Brief'],
-            detailedComment: ['Detailed Comments', 'Detailed Comment', 'Audit Detail', 'Detail'],
-            shortComment: ['Short Comments', 'Short Comment', 'Short', 'Summary']
+            analyst: ['Analyst Name', 'Action Taken By', 'Analyst'],
+            status: ['Final Status', 'Status'],
+            market: ['Facility', 'Market Name', 'Market'],
+            month: ['Month', 'Period'],
+            date: ['Date', 'Action Date'],
+            userId: ['User ID', 'UserId', 'ID'],
+            vendor: ['Vendor Name', 'Vendor'],
+            program: ['Program Name', 'Program'],
+            docType: ['Type of Document', 'Doc Type'],
+            briefComment: ['Brief Comments', 'Brief Comment']
         };
 
         function getCol(row, targets) {
             const keys = Object.keys(row);
             const key = keys.find(k => {
                 const cleanedK = k.trim().toLowerCase();
-                return targets.some(t => {
-                    const cleanedT = t.toLowerCase();
-                    return cleanedK === cleanedT || cleanedK.includes(cleanedT);
-                });
+                return targets.some(t => cleanedK === t.toLowerCase() || cleanedK.includes(t.toLowerCase()));
             });
             return key ? row[key] : '-';
         }
@@ -266,11 +229,8 @@
         async function fetchData() {
             const icon = document.getElementById('refreshIcon');
             const statusLabel = document.getElementById('syncStatus');
-            const errorBanner = document.getElementById('errorBanner');
-            
             icon.classList.add('animate-spin');
-            statusLabel.innerText = "Syncing live data...";
-            errorBanner.classList.add('hidden');
+            statusLabel.innerText = "UPDATING...";
 
             Papa.parse(CSV_URL, {
                 download: true,
@@ -278,61 +238,36 @@
                 dynamicTyping: true,
                 skipEmptyLines: true,
                 complete: (results) => {
-                    if (results.data && results.data.length > 0) {
-                        dataset = results.data.map(row => ({
-                            analyst: getCol(row, MAPPING.analyst),
-                            status: getCol(row, MAPPING.status),
-                            market: getCol(row, MAPPING.market),
-                            month: getCol(row, MAPPING.month),
-                            date: getCol(row, MAPPING.date),
-                            userId: getCol(row, MAPPING.userId),
-                            vendor: getCol(row, MAPPING.vendor),
-                            program: getCol(row, MAPPING.program),
-                            docType: getCol(row, MAPPING.docType),
-                            briefComment: getCol(row, MAPPING.briefComment),
-                            detailedComment: getCol(row, MAPPING.detailedComment),
-                            shortComment: getCol(row, MAPPING.shortComment)
-                        })).filter(item => item.analyst !== '-' || item.market !== '-');
-                        
-                        finalizeData(statusLabel);
-                        icon.classList.remove('animate-spin');
-                    } else {
-                        handleFetchError("Spreadsheet returned no valid rows.");
-                    }
-                },
-                error: (err) => {
-                    handleFetchError("Connectivity error. Check Google Sheet link.");
+                    dataset = results.data.map(row => ({
+                        analyst: getCol(row, MAPPING.analyst),
+                        status: getCol(row, MAPPING.status),
+                        market: getCol(row, MAPPING.market),
+                        month: getCol(row, MAPPING.month),
+                        date: getCol(row, MAPPING.date),
+                        userId: getCol(row, MAPPING.userId),
+                        vendor: getCol(row, MAPPING.vendor),
+                        program: getCol(row, MAPPING.program),
+                        docType: getCol(row, MAPPING.docType),
+                        briefComment: getCol(row, MAPPING.briefComment)
+                    })).filter(item => item.analyst !== '-' || item.market !== '-');
+                    
+                    populateFilters();
+                    applyFilters();
+                    icon.classList.remove('animate-spin');
+                    statusLabel.innerText = `SYNCED: ${new Date().toLocaleTimeString()}`;
                 }
             });
-        }
-
-        function handleFetchError(msg) {
-            const icon = document.getElementById('refreshIcon');
-            const statusLabel = document.getElementById('syncStatus');
-            const errorBanner = document.getElementById('errorBanner');
-            statusLabel.innerText = "Sync Failed";
-            document.getElementById('errorMessage').innerText = msg;
-            errorBanner.classList.remove('hidden');
-            icon.classList.remove('animate-spin');
-        }
-
-        function finalizeData(statusLabel) {
-            populateFilters();
-            applyFilters();
-            statusLabel.innerText = `Last update: ${new Date().toLocaleTimeString()}`;
         }
 
         function populateFilters() {
             const filter = document.getElementById('monthFilter');
             const months = [...new Set(dataset.map(d => d.month).filter(m => m && m !== '-'))].sort();
-            const current = filter.value;
-            filter.innerHTML = '<option value="all">Full Year</option>';
+            filter.innerHTML = '<option value="all">All Months</option>';
             months.forEach(m => {
                 const opt = document.createElement('option');
                 opt.value = m; opt.innerText = m;
                 filter.appendChild(opt);
             });
-            filter.value = (current === 'all' || !months.includes(current)) ? 'all' : current;
         }
 
         function applyFilters() {
@@ -351,30 +286,28 @@
 
             filteredDataset.forEach(d => {
                 const s = String(d.status || '').toLowerCase().trim();
-                const m = d.market || 'Unspecified';
-                const a = d.analyst || 'N/A';
-                const dt = d.date !== '-' ? String(d.date).split(' ')[0] : 'Unknown Date';
-                const uid = d.userId;
-
-                const isApp = s.includes('approve') || s === 'pass' || s === 'completed' || s === 'closed' || s === 'verified';
-                const isRej = s.includes('reject') || s === 'fail' || s === 'returned' || s === 'open' || s.includes('rejection');
+                const isApp = s.includes('approve') || s === 'pass' || s === 'completed' || s === 'closed';
+                const isRej = s.includes('reject') || s === 'fail' || s === 'returned' || s.includes('rejection');
 
                 if (isApp) stats.app++; else if (isRej) stats.rej++;
 
-                // Day Wise Unique User Count
+                const dt = d.date !== '-' ? String(d.date).split(' ')[0] : 'No Date';
+                const uid = d.userId;
                 if (!stats.dayWise[dt]) stats.dayWise[dt] = new Set();
-                if (uid !== '-' && uid !== null && uid !== undefined) {
+                if (uid !== '-' && uid) {
                     stats.dayWise[dt].add(uid);
                     stats.uniqueUserIds.add(uid);
                 }
 
-                if (!stats.markets[m]) stats.markets[m] = { total: 0, p: 0, f: 0 };
+                const m = d.market || 'Unknown';
+                if (!stats.markets[m]) stats.markets[m] = { total: 0, p: 0 };
                 stats.markets[m].total++;
-                if (isApp) stats.markets[m].p++; if (isRej) stats.markets[m].f++;
+                if (isApp) stats.markets[m].p++;
 
-                if (!stats.analysts[a]) stats.analysts[a] = { total: 0, p: 0, f: 0 };
+                const a = d.analyst || 'N/A';
+                if (!stats.analysts[a]) stats.analysts[a] = { total: 0, p: 0 };
                 stats.analysts[a].total++;
-                if (isApp) stats.analysts[a].p++; if (isRej) stats.analysts[a].f++;
+                if (isApp) stats.analysts[a].p++;
             });
             
             currentDayWiseStats = stats.dayWise;
@@ -401,66 +334,23 @@
                 entries = entries.slice(0, 7);
             }
 
-            // Calculate max count for the bar background visual
             const maxCount = Math.max(...entries.map(e => e[1].size), 1);
 
             dwBody.innerHTML = entries.map(([date, userSet]) => {
                 const percentage = (userSet.size / maxCount) * 100;
                 return `
-                <tr class="hover:bg-slate-50 transition-colors relative">
-                    <td class="px-6 py-4 font-semibold text-slate-700 relative z-10">${date}</td>
-                    <td class="px-6 py-4 text-right relative z-10">
-                        <span class="inline-block bg-indigo-50 text-indigo-700 px-3 py-1 rounded-lg font-bold text-xs border border-indigo-100">
-                            ${userSet.size} Users
-                        </span>
-                    </td>
-                    <div class="absolute inset-y-1.5 left-0 bg-indigo-500/5 rounded-r-lg transition-all duration-700" style="width: ${percentage}%"></div>
-                </tr>
-            `}).join('') || '<tr><td colspan="2" class="px-6 py-8 text-center text-slate-400 italic">No matching dates found</td></tr>';
-        }
-
-        function showMarketDetails(marketName) {
-            const marketData = filteredDataset.filter(d => d.market === marketName);
-            const overlay = document.getElementById('detailOverlay');
-            
-            let app = 0, rej = 0;
-            const records = marketData.map(d => {
-                const s = String(d.status || '').toLowerCase().trim();
-                const isApp = s.includes('approve') || s === 'pass' || s === 'completed' || s === 'closed' || s === 'verified';
-                if (isApp) app++; else rej++;
-                return { ...d, isApp };
-            });
-
-            document.getElementById('detailTitle').innerText = marketName;
-            document.getElementById('mTotal').innerText = marketData.length;
-            document.getElementById('mApp').innerText = app;
-            document.getElementById('mRej').innerText = rej;
-
-            const dCaseBody = document.getElementById('detailCaseBody');
-            dCaseBody.innerHTML = records.map(r => `
                 <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="px-4 py-4 font-bold text-slate-700 whitespace-nowrap">${r.program || '-'}</td>
-                    <td class="px-4 py-4 text-slate-600 whitespace-nowrap">${r.vendor || '-'}</td>
-                    <td class="px-4 py-4"><span class="bg-slate-100 px-2 py-1 rounded text-[10px] text-slate-500 font-medium">${r.docType || '-'}</span></td>
-                    <td class="px-4 py-4 text-slate-500 max-w-xs truncate" title="${r.briefComment || ''}">${r.briefComment || '-'}</td>
-                    <td class="px-4 py-4 text-slate-500 max-w-sm truncate" title="${r.detailedComment || ''}">${r.detailedComment || '-'}</td>
-                    <td class="px-4 py-4 text-slate-500 max-w-xs truncate" title="${r.shortComment || ''}">${r.shortComment || '-'}</td>
-                    <td class="px-4 py-4 text-center font-medium text-slate-400">${r.analyst || '-'}</td>
-                    <td class="px-4 py-4 text-right">
-                        <span class="font-bold px-2 py-1 rounded text-[10px] uppercase ${r.isApp ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}">
-                            ${r.isApp ? 'Approved' : 'Rejected'}
-                        </span>
+                    <td class="px-6 py-4 font-semibold text-slate-600">${date}</td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center justify-between gap-3">
+                            <span class="font-bold text-slate-800 min-w-[3rem]">${userSet.size}</span>
+                            <div class="progress-bar-bg flex-1 max-w-[120px]">
+                                <div class="progress-bar-fill" style="width: ${percentage}%"></div>
+                            </div>
+                        </div>
                     </td>
                 </tr>
-            `).join('');
-
-            overlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeDetails() {
-            document.getElementById('detailOverlay').classList.remove('active');
-            document.body.style.overflow = '';
+            `}).join('') || '<tr><td colspan="2" class="px-6 py-8 text-center text-slate-400 italic">No data matched</td></tr>';
         }
 
         function updateUI(stats) {
@@ -474,15 +364,8 @@
             const mBody = document.getElementById('marketBody');
             mBody.innerHTML = Object.entries(stats.markets).sort((a,b) => b[1].total - a[1].total).map(([name, s]) => `
                 <tr class="hover:bg-slate-50 transition-colors cursor-pointer group" onclick="showMarketDetails('${name.replace(/'/g, "\\'")}')">
-                    <td class="px-6 py-4 font-semibold text-slate-700 group-hover:text-indigo-600 flex items-center gap-2">
-                        ${name}
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 opacity-0 group-hover:opacity-100 transition-all transform translate-x-0 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                        </svg>
-                    </td>
-                    <td class="px-6 py-4 text-center font-medium">${s.total}</td>
-                    <td class="px-6 py-4 text-center text-emerald-600 font-medium">${s.p}</td>
-                    <td class="px-6 py-4 text-center text-rose-500 font-medium">${s.f}</td>
+                    <td class="px-6 py-4 font-medium text-slate-700 group-hover:text-indigo-600">${name}</td>
+                    <td class="px-6 py-4 text-center font-bold text-slate-400">${s.total}</td>
                     <td class="px-6 py-4 text-right font-extrabold text-slate-800">${s.total > 0 ? ((s.p/s.total)*100).toFixed(1) : 0}%</td>
                 </tr>
             `).join('');
@@ -491,15 +374,36 @@
             aBody.innerHTML = Object.entries(stats.analysts).sort((a,b) => b[1].total - a[1].total).map(([name, s]) => `
                 <tr class="hover:bg-slate-50 transition-colors">
                     <td class="px-6 py-4 font-medium text-slate-700">${name}</td>
-                    <td class="px-6 py-4 text-center font-bold text-slate-300">${s.total}</td>
-                    <td class="px-6 py-4 text-center text-emerald-600 font-medium">${s.p}</td>
-                    <td class="px-6 py-4 text-center text-rose-400 font-medium">${s.f}</td>
+                    <td class="px-6 py-4 text-center font-bold text-slate-400">${s.total}</td>
                     <td class="px-6 py-4 text-right font-extrabold text-indigo-600">${s.total > 0 ? ((s.p/s.total)*100).toFixed(1) : 0}%</td>
                 </tr>
             `).join('');
         }
 
-        window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDetails(); });
+        function showMarketDetails(name) {
+            const marketData = filteredDataset.filter(d => d.market === name);
+            document.getElementById('detailTitle').innerText = name;
+            const dBody = document.getElementById('detailCaseBody');
+            dBody.innerHTML = marketData.slice(0, 100).map(r => {
+                const s = String(r.status || '').toLowerCase();
+                const isApp = s.includes('approve') || s === 'pass' || s === 'completed';
+                return `
+                <tr>
+                    <td class="px-4 py-3 font-bold text-slate-700">${r.program || '-'}</td>
+                    <td class="px-4 py-3 text-slate-500">${r.vendor || '-'}</td>
+                    <td class="px-4 py-3">${r.docType || '-'}</td>
+                    <td class="px-4 py-3 text-slate-400 italic max-w-[200px] truncate">${r.briefComment || '-'}</td>
+                    <td class="px-4 py-3 text-right">
+                        <span class="text-[9px] font-bold uppercase px-2 py-1 rounded ${isApp ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}">
+                            ${isApp ? 'Pass' : 'Fail'}
+                        </span>
+                    </td>
+                </tr>
+            `}).join('');
+            document.getElementById('detailOverlay').classList.add('active');
+        }
+
+        function closeDetails() { document.getElementById('detailOverlay').classList.remove('active'); }
         window.onload = fetchData;
     </script>
 </body>
